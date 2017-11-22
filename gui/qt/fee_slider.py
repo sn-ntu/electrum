@@ -1,11 +1,13 @@
 
 from electrum.i18n import _
+from electrum.simple_config import STATIC, ETA, MEMPOOL
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QSlider, QToolTip
 
 import threading
+
 
 class FeeSlider(QSlider):
 
@@ -14,7 +16,7 @@ class FeeSlider(QSlider):
         self.config = config
         self.window = window
         self.callback = callback
-        self.dyn = False
+        self.fee_type = STATIC
         self.lock = threading.RLock()
         self.update()
         self.valueChanged.connect(self.moved)
@@ -22,37 +24,51 @@ class FeeSlider(QSlider):
 
     def moved(self, pos):
         with self.lock:
-            fee_rate = self.config.dynfee(pos) if self.dyn else self.config.static_fee(pos)
+            if self.fee_type == STATIC:
+                fee_rate = self.config.static_fee(pos)
+            elif self.fee_type == ETA:
+                fee_rate = self.config.eta_to_fee(pos)
+            elif self.fee_type == MEMPOOL:
+                fee_rate = self.config.depth_to_fee(pos)
             tooltip = self.get_tooltip(pos, fee_rate)
             QToolTip.showText(QCursor.pos(), tooltip, self)
             self.setToolTip(tooltip)
-            self.callback(self.dyn, pos, fee_rate)
+            self.callback(self.fee_type, pos, fee_rate)
 
     def get_tooltip(self, pos, fee_rate):
-        from electrum.util import fee_levels
         rate_str = self.window.format_fee_rate(fee_rate) if fee_rate else _('unknown')
-        if self.dyn:
-            tooltip = fee_levels[pos] + '\n' + rate_str
-        else:
-            tooltip = 'Fixed rate: ' + rate_str
-            if self.config.has_fee_estimates():
-                i = self.config.reverse_dynfee(fee_rate)
-                tooltip += '\n' + (_('Low fee') if i < 0 else 'Within %d blocks'%i)
+        if self.fee_type == MEMPOOL:
+            tooltip = 'Mempool based\n' + self.config.depth_tooltip(pos)
+        elif self.fee_type == ETA:
+            tooltip = 'Time based\n'+ self.config.eta_tooltip(pos)
+        elif self.fee_type == STATIC:
+            tooltip = 'Fixed rate:\n' + rate_str
+            #if self.config.has_fee_estimates():
+            #    eta = self.config.fee_to_eta(fee_rate)
+            #    depth = self.config.fee_to_depth(fee_rate)
+            #    tooltip += '\n' + self.config.fee_tooltip(eta)
         return tooltip
 
     def update(self):
+        from electrum.simple_config import FEE_ETA_TARGETS, FEE_DEPTH_TARGETS
         with self.lock:
-            self.dyn = self.config.is_dynfee()
-            if self.dyn:
-                pos = self.config.get('fee_level', 2)
-                fee_rate = self.config.dynfee(pos)
-                self.setRange(0, 4)
-                self.setValue(pos)
-            else:
+            self.fee_type = self.config.fee_type()
+            if self.fee_type == STATIC:
                 fee_rate = self.config.fee_per_kb()
                 pos = self.config.static_fee_index(fee_rate)
                 self.setRange(0, 9)
                 self.setValue(pos)
+            elif self.fee_type == ETA:
+                pos = self.config.get('fee_level', 2)
+                fee_rate = self.config.eta_to_fee(pos)
+                self.setRange(0, len(FEE_ETA_TARGETS)-1)
+                self.setValue(pos)
+            else:
+                pos = self.config.get('fee_level', 2)
+                fee_rate = self.config.depth_to_fee(pos)
+                self.setRange(0, len(FEE_DEPTH_TARGETS)-1)
+                self.setValue(pos)
+
             tooltip = self.get_tooltip(pos, fee_rate)
             self.setToolTip(tooltip)
 

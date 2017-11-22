@@ -48,6 +48,7 @@ from electrum.util import (format_time, format_satoshis, PrintError,
 from electrum import Transaction
 from electrum import util, bitcoin, commands, coinchooser
 from electrum import paymentrequest
+from electrum.simple_config import STATIC, ETA, MEMPOOL
 from electrum.wallet import Multisig_Wallet
 try:
     from electrum.plot import plot_history
@@ -283,7 +284,6 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
             self.need_update.set()
             self.gui_object.network_updated_signal_obj.network_updated_signal \
                 .emit(event, args)
-
         elif event == 'new_transaction':
             self.tx_notifications.append(args[0])
             self.notify_transactions_signal.emit()
@@ -302,9 +302,15 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         elif event == 'verified':
             self.history_list.update_item(*args)
         elif event == 'fee':
-            if self.config.is_dynfee():
+            if self.config.fee_type() == ETA:
                 self.fee_slider.update()
                 self.do_update_fee()
+        elif event == 'fee_histogram':
+            if self.config.fee_type() == MEMPOOL:
+                self.fee_slider.update()
+                self.do_update_fee()
+            # todo: update only unconf
+            self.history_list.update()
         else:
             self.print_error("unexpected network_qt signal:", event, args)
 
@@ -1244,7 +1250,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         '''Recalculate the fee.  If the fee was manually input, retain it, but
         still build the TX to see if there are enough funds.
         '''
-        if not self.config.get('offline') and self.config.is_dynfee() and not self.config.has_fee_estimates():
+        if not self.config.get('offline') and self.config.fee_type == 1 and not self.config.has_fee_estimates():
             self.statusBar().showMessage(_('Waiting for fee estimates...'))
             return False
         freeze_fee = self.is_send_fee_frozen()
@@ -2637,14 +2643,21 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         nz.valueChanged.connect(on_nz)
         gui_widgets.append((nz_label, nz))
 
-        def on_dynfee(x):
-            self.config.set_key('dynamic_fees', x == Qt.Checked)
+        msg = '\n'.join([
+            _('Static: fee rate is static'),
+            _('Time based: fee rate is based on average confirmation time estimates'),
+            _('Mempool based: fee rate is targetting a depth in the memory pool')
+            ]
+        )
+        fee_type_label = HelpLabel(_('Fee estimation') + ':', msg)
+        fee_type_combo = QComboBox()
+        fee_type_combo.addItems([_('Static'), _('Time based'), _('Mempool based')])
+        fee_type_combo.setCurrentIndex(self.config.get('dynamic_fees', 0))
+        def on_fee_type(x):
+            self.config.set_key('dynamic_fees', x)
             self.fee_slider.update()
-        dynfee_cb = QCheckBox(_('Use dynamic fees'))
-        dynfee_cb.setChecked(self.config.is_dynfee())
-        dynfee_cb.setToolTip(_("Use fees recommended by the server."))
-        fee_widgets.append((dynfee_cb, None))
-        dynfee_cb.stateChanged.connect(on_dynfee)
+        fee_type_combo.currentIndexChanged.connect(on_fee_type)
+        fee_widgets.append((fee_type_label, fee_type_combo))
 
         feebox_cb = QCheckBox(_('Edit fees manually'))
         feebox_cb.setChecked(self.config.get('show_fee', False))
