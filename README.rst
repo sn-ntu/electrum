@@ -1,20 +1,13 @@
-Electrum - Lightweight Bitcoin client
-=====================================
+Electrum-XZC - Lightweight Zcoin client
+=======================================
 
 ::
 
   Licence: MIT Licence
-  Author: Thomas Voegtlin
+  Original Author: Thomas Voegtlin
+  Port Maintainer: Pooler, SN
   Language: Python
-  Homepage: https://electrum.org/
-
-
-.. image:: https://travis-ci.org/spesmilo/electrum.svg?branch=master
-    :target: https://travis-ci.org/spesmilo/electrum
-    :alt: Build Status
-.. image:: https://coveralls.io/repos/github/spesmilo/electrum/badge.svg?branch=master
-    :target: https://coveralls.io/github/spesmilo/electrum?branch=master
-    :alt: Test coverage statistics
+  Homepage: https://electrum.zcoin.io/
 
 
 
@@ -34,7 +27,7 @@ Electrum from its root directory, without installing it on your
 system; all the python dependencies are included in the 'packages'
 directory. To run Electrum from its root directory, just do::
 
-    ./electrum
+    ./electrum-xzc
 
 You can also install Electrum on your system, by running this command::
 
@@ -55,8 +48,8 @@ Development version
 
 Check out the code from Github::
 
-    git clone git://github.com/spesmilo/electrum.git
-    cd electrum
+    git clone git://github.com/sn-ntu/electrum-xzc.git
+    cd electrum-xzc
 
 Run install (this should install dependencies)::
 
@@ -101,7 +94,7 @@ Mac OS X / macOS
     # On Homebrew installs: 
     ARCHFLAGS="-arch i386 -arch x86_64" sudo python3 setup-release.py py2app --includes sip
     
-    sudo hdiutil create -fs HFS+ -volname "Electrum" -srcfolder dist/Electrum.app dist/electrum-VERSION-macosx.dmg
+    sudo hdiutil create -fs HFS+ -volname "Electrum-XZC" -srcfolder dist/Electrum-XZC.app dist/electrum-xzc-VERSION-macosx.dmg
 
 Windows
 -------

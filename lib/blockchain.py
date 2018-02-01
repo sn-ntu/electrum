@@ -27,7 +27,14 @@ from . import util
 from . import bitcoin
 from .bitcoin import *
 
-MAX_TARGET = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
+try:
+    import scrypt
+    getPoWHash = lambda x: scrypt.hash(x, x, N=1024, r=1, p=1, buflen=32)
+except ImportError:
+    util.print_msg("Warning: package scrypt not available; synchronization could be very slow")
+    from .scrypt import scrypt_1024_1_1_80 as getPoWHash
+
+MAX_TARGET = 0x00000FFFFF000000000000000000000000000000000000000000000000000000
 
 def serialize_header(res):
     s = int_to_hex(res.get('version'), 4) \
@@ -56,6 +63,9 @@ def hash_header(header):
     if header.get('prev_block_hash') is None:
         header['prev_block_hash'] = '00'*32
     return hash_encode(Hash(bfh(serialize_header(header))))
+
+def pow_hash_header(header):
+    return hash_encode(getPoWHash(bfh(serialize_header(header))))
 
 
 blockchains = {}
@@ -150,6 +160,7 @@ class Blockchain(util.PrintError):
 
     def verify_header(self, header, prev_hash, target):
         _hash = hash_header(header)
+        _powhash = pow_hash_header(header)
         if prev_hash != header.get('prev_block_hash'):
             raise BaseException("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
         if bitcoin.NetworkConstants.TESTNET:
@@ -157,8 +168,8 @@ class Blockchain(util.PrintError):
         bits = self.target_to_bits(target)
         if bits != header.get('bits'):
             raise BaseException("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        if int('0x' + _hash, 16) > target:
-            raise BaseException("insufficient proof of work: %s vs target %s" % (int('0x' + _hash, 16), target))
+        if int('0x' + _powhash, 16) > target:
+            raise BaseException("insufficient proof of work: %s vs target %s" % (int('0x' + _powhash, 16), target))
 
     def verify_chunk(self, index, data):
         num = len(data) // 80
@@ -265,27 +276,35 @@ class Blockchain(util.PrintError):
         elif height < len(self.checkpoints) * 2016:
             assert (height+1) % 2016 == 0, height
             index = height // 2016
-            h, t = self.checkpoints[index]
+            h, t, _ = self.checkpoints[index]
             return h
         else:
             return hash_header(self.read_header(height))
+
+    def get_timestamp(self, height):
+        if height < len(self.checkpoints) * 2016 and (height+1) % 2016 == 0:
+            index = height // 2016
+            _, _, ts = self.checkpoints[index]
+            return ts
+        return self.read_header(height).get('timestamp')
 
     def get_target(self, index):
         # compute target from chunk x, used in chunk x+1
         if bitcoin.NetworkConstants.TESTNET:
             return 0
         if index == -1:
-            return MAX_TARGET
+            return 0x00000FFFF0000000000000000000000000000000000000000000000000000000
         if index < len(self.checkpoints):
-            h, t = self.checkpoints[index]
+            h, t, _ = self.checkpoints[index]
             return t
         # new target
-        first = self.read_header(index * 2016)
+        # Zcoin: go back the full period unless it's the first retarget
+        first_timestamp = self.get_timestamp(index * 2016 - 1 if index > 0 else 0)
         last = self.read_header(index * 2016 + 2015)
         bits = last.get('bits')
         target = self.bits_to_target(bits)
-        nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
+        nActualTimespan = last.get('timestamp') - first_timestamp
+        nTargetTimespan = 84 * 60 * 60
         nActualTimespan = max(nActualTimespan, nTargetTimespan // 4)
         nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
         new_target = min(MAX_TARGET, (target * nActualTimespan) // nTargetTimespan)
@@ -293,8 +312,8 @@ class Blockchain(util.PrintError):
 
     def bits_to_target(self, bits):
         bitsN = (bits >> 24) & 0xff
-        if not (bitsN >= 0x03 and bitsN <= 0x1d):
-            raise BaseException("First part of bits should be in [0x03, 0x1d]")
+        if not (bitsN >= 0x03 and bitsN <= 0x1e):
+            raise BaseException("First part of bits should be in [0x03, 0x1e]")
         bitsBase = bits & 0xffffff
         if not (bitsBase >= 0x8000 and bitsBase <= 0x7fffff):
             raise BaseException("Second part of bits should be in [0x8000, 0x7fffff]")
@@ -348,5 +367,7 @@ class Blockchain(util.PrintError):
         for index in range(n):
             h = self.get_hash((index+1) * 2016 -1)
             target = self.get_target(index)
-            cp.append((h, target))
+            # Zcoin: also store the timestamp of the last block
+            tstamp = self.get_timestamp((index+1) * 2016 - 1)
+            cp.append((h, target, tstamp))
         return cp

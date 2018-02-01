@@ -75,10 +75,10 @@ class NetworkConstants:
     def set_mainnet(cls):
         cls.TESTNET = False
         cls.WIF_PREFIX = 0x80
-        cls.ADDRTYPE_P2PKH = 0
-        cls.ADDRTYPE_P2SH = 5
-        cls.SEGWIT_HRP = "bc"
-        cls.GENESIS = "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
+        cls.ADDRTYPE_P2PKH = 48
+        cls.ADDRTYPE_P2SH = 50
+        cls.SEGWIT_HRP = "xzc"
+        cls.GENESIS = "12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2"
         cls.DEFAULT_PORTS = {'t': '50001', 's': '50002'}
         cls.DEFAULT_SERVERS = read_json('servers.json', {})
         cls.CHECKPOINTS = read_json('checkpoints.json', [])
@@ -86,11 +86,11 @@ class NetworkConstants:
     @classmethod
     def set_testnet(cls):
         cls.TESTNET = True
-        cls.WIF_PREFIX = 0xef
+        cls.WIF_PREFIX = 0xbf
         cls.ADDRTYPE_P2PKH = 111
-        cls.ADDRTYPE_P2SH = 196
-        cls.SEGWIT_HRP = "tb"
-        cls.GENESIS = "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943"
+        cls.ADDRTYPE_P2SH = 58
+        cls.SEGWIT_HRP = "txzc"
+        cls.GENESIS = "4966625a4b2851d9fdee139e56211a0d88575f59ed816ff5e6a63deb4e3e29a0"
         cls.DEFAULT_PORTS = {'t':'51001', 's':'51002'}
         cls.DEFAULT_SERVERS = read_json('servers_testnet.json', {})
         cls.CHECKPOINTS = read_json('checkpoints_testnet.json', [])
@@ -100,8 +100,8 @@ NetworkConstants.set_mainnet()
 
 ################################## transactions
 
-FEE_STEP = 10000
-MAX_FEE_RATE = 300000
+FEE_STEP = 100000
+MAX_FEE_RATE = 1000000
 FEE_TARGETS = [25, 10, 5, 2]
 
 COINBASE_MATURITY = 100
@@ -512,10 +512,10 @@ def DecodeBase58Check(psz):
 # extended key export format for segwit
 
 SCRIPT_TYPES = {
-    'p2pkh':0,
+    'p2pkh':48,
     'p2wpkh':1,
     'p2wpkh-p2sh':2,
-    'p2sh':5,
+    'p2sh':50,
     'p2wsh':6,
     'p2wsh-p2sh':7
 }
@@ -619,7 +619,7 @@ from ecdsa.util import string_to_number, number_to_string
 
 def msg_magic(message):
     length = bfh(var_int(len(message)))
-    return b"\x18Bitcoin Signed Message:\n" + length + message
+    return b"\x19Zcoin Signed Message:\n" + length + message
 
 
 def verify_message(address, sig, message):

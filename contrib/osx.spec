@@ -20,23 +20,24 @@ hiddenimports = []
 hiddenimports += collect_submodules('trezorlib')
 hiddenimports += collect_submodules('btchip')
 hiddenimports += collect_submodules('keepkeylib')
+hiddenimports += ['_scrypt']
 
 datas = [
-    (electrum+'lib/currencies.json', 'electrum'),
-    (electrum+'lib/servers.json', 'electrum'),
-    (electrum+'lib/checkpoints.json', 'electrum'),
-    (electrum+'lib/servers_testnet.json', 'electrum'),
-    (electrum+'lib/checkpoints_testnet.json', 'electrum'),
-    (electrum+'lib/wordlist/english.txt', 'electrum/wordlist'),
-    (electrum+'lib/locale', 'electrum/locale'),
-    (electrum+'plugins', 'electrum_plugins'),
+    (electrum+'lib/currencies.json', 'electrum_xzc'),
+    (electrum+'lib/servers.json', 'electrum_xzc'),
+    (electrum+'lib/checkpoints.json', 'electrum_xzc'),
+    (electrum+'lib/servers_testnet.json', 'electrum_xzc'),
+    (electrum+'lib/checkpoints_testnet.json', 'electrum_xzc'),
+    (electrum+'lib/wordlist/english.txt', 'electrum_xzc/wordlist'),
+    (electrum+'lib/locale', 'electrum_xzc/locale'),
+    (electrum+'plugins', 'electrum_xzc_plugins'),
 ]
 datas += collect_data_files('trezorlib')
 datas += collect_data_files('btchip')
 datas += collect_data_files('keepkeylib')
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
-a = Analysis([electrum+'electrum',
+a = Analysis([electrum+'electrum-xzc',
               electrum+'gui/qt/main_window.py',
               electrum+'gui/text.py',
               electrum+'lib/util.py',
@@ -68,7 +69,7 @@ exe = EXE(pyz,
           a.scripts,
           a.binaries,
           a.datas,
-          name='Electrum',
+          name='Electrum-XZC',
           debug=False,
           strip=False,
           upx=True,
@@ -77,7 +78,7 @@ exe = EXE(pyz,
 
 app = BUNDLE(exe,
              version = VERSION,
-             name='Electrum.app',
+             name='Electrum-XZC.app',
              icon=electrum+'electrum.icns',
              bundle_identifier=None,
              info_plist = {

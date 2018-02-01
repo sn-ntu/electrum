@@ -112,4 +112,20 @@ wine nsis.exe /S
 cp $WINEPREFIX/drive_c/python$PYTHON_VERSION/Lib/site-packages/PyQt5/Qt/bin/* $WINEPREFIX/drive_c/python$PYTHON_VERSION/
 
 
+# Install MinGW
+wget http://downloads.sourceforge.net/project/mingw/Installer/mingw-get-setup.exe
+wine mingw-get-setup.exe
+
+echo "add c:\MinGW\bin to PATH using regedit"
+echo "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+regedit
+
+wine mingw-get install gcc
+wine mingw-get install mingw-utils
+wine mingw-get install mingw32-libz
+
+printf "[build]\ncompiler=mingw32\n" > $WINEPREFIX/drive_c/python$PYTHON_VERSION/Lib/distutils/distutils.cfg
+
+$PYTHON -m pip install scrypt
+
 echo "Wine is configured. Please run prepare-pyinstaller.sh"

@@ -36,7 +36,7 @@ class SimpleConfig(PrintError):
         2. User configuration (in the user's config directory)
     They are taken in order (1. overrides config options set in 2.)
     """
-    fee_rates = [5000, 10000, 20000, 30000, 50000, 70000, 100000, 150000, 200000, 300000]
+    fee_rates = [100000, 125000, 150000, 200000, 250000, 300000, 400000, 500000, 700000, 1000000]
 
     def __init__(self, options=None, read_user_config_function=None,
                  read_user_dir_function=None):
@@ -227,7 +227,7 @@ class SimpleConfig(PrintError):
         new_path = os.path.join(self.path, "wallets", "default_wallet")
 
         # default path in pre 1.9 versions
-        old_path = os.path.join(self.path, "electrum.dat")
+        old_path = os.path.join(self.path, "electrum-xzc.dat")
         if os.path.exists(old_path) and not os.path.exists(new_path):
             os.rename(old_path, new_path)
 
@@ -279,6 +279,9 @@ class SimpleConfig(PrintError):
     def reverse_dynfee(self, fee_per_kb):
         import operator
         l = list(self.fee_estimates.items()) + [(1, self.dynfee(4))]
+        for i in range(len(l)-1, 0, -1):
+            if l[i][1] == l[i-1][1]:
+                del l[i-1]
         dist = map(lambda x: (x[0], abs(x[1] - fee_per_kb)), l)
         min_target, min_value = min(dist, key=operator.itemgetter(1))
         if fee_per_kb < self.fee_estimates.get(25)/2:
@@ -296,7 +299,7 @@ class SimpleConfig(PrintError):
         return len(self.fee_estimates)==4
 
     def is_dynfee(self):
-        return self.get('dynamic_fees', True)
+        return self.get('dynamic_fees', False)
 
     def fee_per_kb(self):
         """Returns sat/kvB fee to pay for a txn.
@@ -306,7 +309,7 @@ class SimpleConfig(PrintError):
         if dyn:
             fee_rate = self.dynfee(self.get('fee_level', 2))
         else:
-            fee_rate = self.get('fee_per_kb', self.max_fee_rate()/2)
+            fee_rate = self.get('fee_per_kb', self.max_fee_rate()/10)
         return fee_rate
 
     def fee_per_byte(self):
@@ -352,7 +355,7 @@ class SimpleConfig(PrintError):
 
 
 def read_user_config(path):
-    """Parse and store the user config settings in electrum.conf into user_config[]."""
+    """Parse and store the user config settings in electrum-xzc.conf into user_config[]."""
     if not path:
         return {}
     config_path = os.path.join(path, "config")

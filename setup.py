@@ -28,12 +28,12 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
         else:
             usr_share = os.path.expanduser('~/.local/share')
     data_files += [
-        (os.path.join(usr_share, 'applications/'), ['electrum.desktop']),
-        (os.path.join(usr_share, 'pixmaps/'), ['icons/electrum.png'])
+        (os.path.join(usr_share, 'applications/'), ['electrum-xzc.desktop']),
+        (os.path.join(usr_share, 'pixmaps/'), ['icons/electrum-xzc.png'])
     ]
 
 setup(
-    name="Electrum",
+    name="Electrum-XZC",
     version=version.ELECTRUM_VERSION,
     install_requires=[
         'pyaes>=0.1a1',
@@ -41,36 +41,35 @@ setup(
         'pbkdf2',
         'requests',
         'qrcode',
+        'scrypt>=0.6.0',
         'protobuf',
         'dnspython',
         'jsonrpclib-pelix',
         'PySocks>=1.6.6',
     ],
     packages=[
-        'electrum',
-        'electrum_gui',
-        'electrum_gui.qt',
-        'electrum_plugins',
-        'electrum_plugins.audio_modem',
-        'electrum_plugins.cosigner_pool',
-        'electrum_plugins.email_requests',
-        'electrum_plugins.greenaddress_instant',
-        'electrum_plugins.hw_wallet',
-        'electrum_plugins.keepkey',
-        'electrum_plugins.labels',
-        'electrum_plugins.ledger',
-        'electrum_plugins.trezor',
-        'electrum_plugins.digitalbitbox',
-        'electrum_plugins.trustedcoin',
-        'electrum_plugins.virtualkeyboard',
+        'electrum_xzc',
+        'electrum_xzc_gui',
+        'electrum_xzc_gui.qt',
+        'electrum_xzc_plugins',
+        'electrum_xzc_plugins.audio_modem',
+        'electrum_xzc_plugins.cosigner_pool',
+        'electrum_xzc_plugins.email_requests',
+        'electrum_xzc_plugins.hw_wallet',
+        'electrum_xzc_plugins.keepkey',
+        'electrum_xzc_plugins.labels',
+        'electrum_xzc_plugins.ledger',
+        'electrum_xzc_plugins.trezor',
+        'electrum_xzc_plugins.digitalbitbox',
+        'electrum_xzc_plugins.virtualkeyboard',
     ],
     package_dir={
-        'electrum': 'lib',
-        'electrum_gui': 'gui',
-        'electrum_plugins': 'plugins',
+        'electrum_xzc': 'lib',
+        'electrum_xzc_gui': 'gui',
+        'electrum_xzc_plugins': 'plugins',
     },
     package_data={
-        'electrum': [
+        'electrum_xzc': [
             'servers.json',
             'servers_testnet.json',
             'currencies.json',
@@ -81,12 +80,12 @@ setup(
             'locale/*/LC_MESSAGES/electrum.mo',
         ]
     },
-    scripts=['electrum'],
+    scripts=['electrum-xzc'],
     data_files=data_files,
-    description="Lightweight Bitcoin Wallet",
+    description="Lightweight Zcoin Wallet",
     author="Thomas Voegtlin",
     author_email="thomasv@electrum.org",
     license="MIT Licence",
-    url="https://electrum.org",
-    long_description="""Lightweight Bitcoin Wallet"""
+    url="http://electrum-xzc.org",
+    long_description="""Lightweight Zcoin Wallet"""
 )

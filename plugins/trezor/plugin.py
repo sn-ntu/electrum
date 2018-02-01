@@ -2,13 +2,13 @@ import threading
 
 from binascii import hexlify, unhexlify
 
-from electrum.util import bfh, bh2u
-from electrum.bitcoin import (b58_address_to_hash160, xpub_from_pubkey,
-                              TYPE_ADDRESS, TYPE_SCRIPT, NetworkConstants)
-from electrum.i18n import _
-from electrum.plugins import BasePlugin
-from electrum.transaction import deserialize
-from electrum.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
+from electrum_xzc.util import bfh, bh2u
+from electrum_xzc.bitcoin import (b58_address_to_hash160, xpub_from_pubkey,
+                                  TYPE_ADDRESS, TYPE_SCRIPT, NetworkConstants)
+from electrum_xzc.i18n import _
+from electrum_xzc.plugins import BasePlugin
+from electrum_xzc.transaction import deserialize
+from electrum_xzc.keystore import Hardware_KeyStore, is_xpubkey, parse_xpubkey
 
 from ..hw_wallet import HW_PluginBase
 
@@ -146,7 +146,7 @@ class TrezorCompatiblePlugin(HW_PluginBase):
         return client
 
     def get_coin_name(self):
-        return "Testnet" if NetworkConstants.TESTNET else "Bitcoin"
+        return "Testnet" if NetworkConstants.TESTNET else "Zcoin"
 
     def initialize_device(self, device_id, wizard, handler):
         # Initialization method

@@ -3,14 +3,14 @@ import hashlib
 import sys
 import traceback
 
-from electrum import bitcoin
-from electrum.bitcoin import TYPE_ADDRESS, int_to_hex, var_int
-from electrum.i18n import _
-from electrum.plugins import BasePlugin
-from electrum.keystore import Hardware_KeyStore
-from electrum.transaction import Transaction
+from electrum_xzc import bitcoin
+from electrum_xzc.bitcoin import TYPE_ADDRESS, int_to_hex, var_int
+from electrum_xzc.i18n import _
+from electrum_xzc.plugins import BasePlugin
+from electrum_xzc.keystore import Hardware_KeyStore
+from electrum_xzc.transaction import Transaction
 from ..hw_wallet import HW_PluginBase
-from electrum.util import print_error, is_verbose, bfh, bh2u
+from electrum_xzc.util import print_error, is_verbose, bfh, bh2u
 
 try:
     import hid
@@ -27,10 +27,10 @@ except ImportError:
 
 MSG_NEEDS_FW_UPDATE_GENERIC = _('Firmware version too old. Please update at') + \
                       ' https://www.ledgerwallet.com'
-MSG_NEEDS_FW_UPDATE_SEGWIT = _('Firmware version (or "Bitcoin" app) too old for Segwit support. Please update at') + \
+MSG_NEEDS_FW_UPDATE_SEGWIT = _('Firmware version (or "Zcoin" app) too old for Segwit support. Please update at') + \
                       ' https://www.ledgerwallet.com'
 MULTI_OUTPUT_SUPPORT = '1.1.4'
-SEGWIT_SUPPORT = '1.1.10'
+SEGWIT_SUPPORT = '1.1.9'
 SEGWIT_SUPPORT_SPECIAL = '1.0.4'
 
 
@@ -167,6 +167,7 @@ class Ledger_Client():
                     raise Exception('Aborted by user - please unplug the dongle and plug it again before retrying')
                 pin = pin.encode()
                 self.dongleObject.verifyPin(pin)
+                self.dongleObject.setAlternateCoinVersions(ADDRTYPE_P2PKH, ADDRTYPE_P2SH)
         except BTChipException as e:
             if (e.sw == 0x6faa):
                 raise Exception("Dongle is temporarily locked - please unplug it and replug it again")
@@ -527,7 +528,7 @@ class LedgerPlugin(HW_PluginBase):
         device_id = device_info.device.id_
         client = devmgr.client_by_id(device_id)
         client.handler = self.create_handler(wizard)
-        client.get_xpub("m/44'/0'", 'standard') # TODO replace by direct derivation once Nano S > 1.1
+        client.get_xpub("m/44'/2'", 'standard') # TODO replace by direct derivation once Nano S > 1.1
 
     def get_xpub(self, device_id, derivation, xtype, wizard):
         devmgr = self.device_manager()
