@@ -4,7 +4,7 @@
 # copy this file to /etc/electrum-xzc.conf if you want read-only settings
 
 [client]
-server = electrum-xzc.bysh.me:50001:t
+server = 45.63.92.224:50001:t
 proxy = None
 gap_limit = 5
 # booleans use python syntax
